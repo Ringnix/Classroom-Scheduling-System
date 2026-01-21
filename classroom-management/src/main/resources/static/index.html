@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>课室安排管理系统</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ============ 登录/注册============ -->
+  <section id="viewAuth" class="view view-auth">
+    <div class="auth-shell">
+      <div class="auth-brand">
+        <div class="brand-icon">🏫</div>
+        <div>
+          <div class="brand-title">课室安排管理系统</div>
+          <div class="brand-sub">整洁 · 直观 · 多界面切换</div>
+        </div>
+      </div>
+
+      <div class="auth-card card">
+        <div class="seg">
+          <button id="tabLogin" class="seg-btn active" type="button">登录</button>
+          <button id="tabRegister" class="seg-btn" type="button">注册</button>
+        </div>
+
+        <!-- Login -->
+        <form id="loginForm" class="form">
+          <div class="field">
+            <label>用户名</label>
+            <input id="loginUsername" autocomplete="username" placeholder="请输入用户名" required />
+          </div>
+          <div class="field">
+            <label>密码</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" placeholder="请输入密码" required />
+          </div>
+
+          <button class="btn primary" type="submit">登录进入系统</button>
+        </form>
+
+        
+        <form id="registerForm" class="form hidden">
+          <div class="grid-2">
+            <div class="field">
+              <label>用户名</label>
+              <input id="regUsername" autocomplete="username" placeholder="请输入用户名" required />
+            </div>
+            <div class="field">
+              <label>密码</label>
+              <input id="regPassword" type="password" autocomplete="new-password" placeholder="请输入密码" required />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>角色</label>
+            <select id="regRole">
+              <option value="TEACHER">（默认）老师</option>
+              <option value="ADMIN">管理员</option>
+            </select>
+          </div>
+
+          <button class="btn primary" type="submit">注册并返回登录</button>
+        </form>
+
+        <div class="auth-footer muted">
+          <span>登录后将进入控制台，顶部导航切换多个页面。</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 主控制台 ============ -->
+  <section id="viewApp" class="view hidden">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <div class="topbar-left">
+          <div class="app-mark">🏫</div>
+          <div>
+            <div class="app-title">课室安排控制台</div>
+            <div id="whoami" class="muted tiny">-</div>
+          </div>
+        </div>
+
+        <nav cla ss="tabs" aria-label="navigation">
+          <button class="tab active" data-page="pageDashboard">仪表盘</button>
+          <button class="tab" data-page="pageSchedule">预约管理</button>
+          <button class="tab" data-page="pageMy">我的预约</button>
+          <button class="tab" data-page="pageClassrooms">课室</button>
+          <button class="tab" data-page="pageCourses">课程</button>
+          <button class="tab" id="tabUsers" data-page="pageUsers">用户</button>
+        </nav>
+
+        <div class="topbar-right">
+          <button id="btnSettings" class="btn ghost" type="button">接口设置</button>
+          <button id="btnRefresh" class="btn" type="button">刷新</button>
+          <button id="btnLogout" class="btn danger" type="button">退出</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 仪表盘 -->
+    <main class="container content">
+      <section id="pageDashboard" class="page">
+        <div class="page-head">
+          <h2>仪表盘</h2>
+          <p class="muted">概览系统数据与快捷操作</p>
+        </div>
+
+        <div class="grid-cards">
+          <div class="card stat">
+            <div class="stat-title">课室数量</div>
+            <div id="statClassrooms" class="stat-value">-</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-title">课程数量</div>
+            <div id="statCourses" class="stat-value">-</div>
+          </div>
+          <div class="card stat">
+            <div class="stat-title">预约总数</div>
+            <div id="statSchedules" class="stat-value">-</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h3>快速创建预约</h3>
+              <span class="pill">跳转到“预约管理”</span>
+            </div>
+            <p class="muted">建议：先维护好课室与课程，再进行预约。</p>
+            <button class="btn primary" id="btnGoSchedule" type="button">去预约管理</button>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>我的预约</h3>
+              <span class="pill">按教师查询</span>
+            </div>
+            <p class="muted">查看自己名下的预约记录。</p>
+            <button class="btn" id="btnGoMy" type="button">去我的预约</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 预约 -->
+      <section id="pageSchedule" class="page hidden">
+        <div class="page-head">
+          <h2>预约管理</h2>
+          <p class="muted">创建预约、查询占用、删除记录</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3 id="scheduleFormTitle">创建预约</h3>
+
+            <form id="scheduleForm" class="form">
+              <input id="schId" class="hidden" />
+              <div class="grid-2">
+                <div class="field">
+                  <label>课室</label>
+                  <select id="schClassroom" required></select>
+                </div>
+                <div class="field">
+                  <label>课程</label>
+                  <select id="schCourse" required></select>
+                </div>
+              </div>
+
+              <div class="grid-3">
+                <div class="field">
+                  <label>日期</label>
+                  <input id="schDate" type="date" required />
+                </div>
+                <div class="field">
+                  <label>开始时间</label>
+                  <input id="schStart" type="time" required />
+                </div>
+                <div class="field">
+                  <label>结束时间</label>
+                  <input id="schEnd" type="time" required />
+                </div>
+              </div>
+
+              <div class="field">
+                <label>教师</label>
+                <input id="schTeacher" placeholder="teacher" required />
+              </div>
+
+              <div class="field">
+                <label>备注（可选）</label>
+                <input id="schRemark" placeholder="如：期末复习 / 实验课" />
+              </div>
+
+              <div class="row">
+                <button class="btn primary" type="submit">提交预约</button>
+                <button id="btnResetSchedule" class="btn" type="button">重置</button>
+                <button id="btnPreviewPayload" class="btn" type="button">查看提交 JSON</button>
+              </div>
+
+              <pre id="payloadPreview" class="codebox hidden"></pre>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>预约列表</h3>
+              <span class="pill">可按条件查询</span>
+            </div>
+
+            <div class="filters">
+              <select id="filterType">
+                <option value="all">全部</option>
+                <option value="classroom">按课室</option>
+                <option value="course">按课程</option>
+                <option value="teacher">按教师</option>
+              </select>
+
+              <select id="filterValueSelect" class="hidden"></select>
+              <input id="filterValueInput" class="hidden" placeholder="请输入教师用户名" />
+
+              <button id="btnLoadSchedules" class="btn" type="button">查询</button>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>课室</th>
+                    <th>课程</th>
+                    <th>教师</th>
+                    <th>日期</th>
+                    <th>时间</th>
+                    <th style="width:92px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="scheduleTbody"></tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- 我的预约 -->
+      <section id="pageMy" class="page hidden">
+        <div class="page-head">
+          <h2>我的预约</h2>
+        </div>
+
+        <div class="card">
+          <div class="row space-between">
+            <div class="muted">仅展示当前登录用户的预约记录</div>
+            <button id="btnLoadMy" class="btn" type="button">加载我的预约</button>
+          </div>
+
+          <div class="table-wrap mt">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>课室</th>
+                  <th>课程</th>
+                  <th>日期</th>
+                  <th>时间</th>
+                  <th style="width:92px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="myTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 课室 -->
+      <section id="pageClassrooms" class="page hidden">
+        <div class="page-head">
+          <h2>课室管理</h2>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>课室列表</h3>
+            <div class="table-wrap mt">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>名称</th>
+                    <th>位置</th>
+                    <th>容量</th>
+                    <th>状态</th>
+                    <th style="width:140px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="classroomTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 id="classroomFormTitle">新增课室</h3>
+            <form id="classroomForm" class="form">
+              <input id="crId" class="hidden" />
+              <div class="field">
+                <label>名称（name）</label>
+                <input id="crName" placeholder="如：A101" required />
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>位置（location）</label>
+                  <input id="crLocation" placeholder="如：一教 3F" />
+                </div>
+                <div class="field">
+                  <label>容量（capacity）</label>
+                  <input id="crCapacity" type="number" min="0" placeholder="如：60" />
+                </div>
+              </div>
+              <div class="field">
+                <label>状态（status）</label>
+                <select id="crStatus">
+                  <option value="FREE">空闲</option>
+                  <option value="USED">已占用</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>备注（remark，可选）</label>
+                <input id="crRemark" placeholder="如：多媒体 / 机房" />
+              </div>
+              <div class="row">
+                <button class="btn primary" type="submit">保存课室</button>
+                <button id="btnResetClassroom" class="btn" type="button">重置</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Courses -->
+      <section id="pageCourses" class="page hidden">
+        <div class="page-head">
+          <h2>课程管理</h2>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>课程列表</h3>
+            <div class="table-wrap mt">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>名称</th>
+                    <th>编号</th>
+                    <th>教师</th>
+                    <th style="width:140px;">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="courseTbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 id="courseFormTitle">新增课程</h3>
+            <form id="courseForm" class="form">
+              <input id="coId" class="hidden" />
+              <div class="field">
+                <label>课程名称（name）</label>
+                <input id="coName" placeholder="如：数据库原理" required />
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label>编号（code，可选）</label>
+                  <input id="coCode" placeholder="如：CS301" />
+                </div>
+                <div class="field">
+                  <label>教师（teacher，可选）</label>
+                  <input id="coTeacher" placeholder="如：zhangsan" />
+                </div>
+              </div>
+              <div class="field">
+                <label>备注（remark，可选）</label>
+                <input id="coRemark" placeholder="如：必修 / 实验课" />
+              </div>
+              <div class="row">
+                <button class="btn primary" type="submit">保存课程</button>
+                <button id="btnResetCourse" class="btn" type="button">重置</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- Users (ADMIN) -->
+      <section id="pageUsers" class="page hidden">
+        <div class="page-head">
+          <h2>用户管理（管理员）</h2>
+        </div>
+
+        <div class="card">
+          <div class="row space-between">
+            <div class="muted">只有管理员可见并操作</div>
+            <button id="btnLoadUsers" class="btn" type="button">加载用户</button>
+          </div>
+
+          <div class="grid-2 mt">
+            <div>
+              <div class="table-wrap">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>用户名</th>
+                      <th>角色</th>
+                      <th style="width:160px;">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="userTbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card soft">
+              <h3 id="userFormTitle">新增用户</h3>
+              <form id="userForm" class="form">
+                <input id="uId" class="hidden" />
+                <div class="field">
+                  <label>用户名（username）</label>
+                  <input id="uUsername" required />
+                </div>
+                <div class="field">
+                  <label>密码（password）</label>
+                  <input id="uPassword" type="password"/>
+                </div>
+                <div class="field">
+                  <label>角色（role）</label>
+                  <select id="uRole" required>
+                    <option value="TEACHER">老师</option>
+                    <option value="ADMIN">管理员</option>
+                  </select>
+                </div>
+                <div class="row">
+                  <button class="btn primary" type="submit">保存</button>
+                  <button id="btnUserReset" class="btn" type="button">重置</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="modalMask" class="modal-mask hidden"></div>
+    <div id="settingsModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div>
+          <h3>接口设置</h3>
+          <div class="muted tiny">只修改 base 与 Authorization 前缀，不新增接口</div>
+        </div>
+        <button id="btnCloseModal" class="btn ghost" type="button">关闭</button>
+      </div>
+      <div class="modal-body form">
+        <div class="field">
+          <label>API Base</label>
+          <input id="apiBaseModal" placeholder="http://localhost:8080" />
+        </div>
+        <div class="field">
+          <label>Authorization 前缀</label>
+          <input id="authPrefixModal" placeholder="例如：Bearer " />
+        </div>
+        <div class="row">
+          <button id="btnSaveSettings" class="btn primary" type="button">保存</button>
+          <button id="btnResetSettings" class="btn" type="button">恢复默认</button>
+        </div>
+        <div class="codebox tiny" id="settingsInfo"></div>
+      </div>
+    </div>
+
+    <!-- Schedule Edit Modal -->
+    <div id="scheduleEditModalMask" class="modal-mask hidden"></div>
+    <div id="scheduleEditModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <div>
+          <h3>编辑预约</h3>
+          <div class="muted tiny">修改预约信息并保存</div>
+        </div>
+        <button id="btnCloseScheduleEditModal" class="btn ghost" type="button">关闭</button>
+      </div>
+      <div class="modal-body form">
+        <input id="editSchId" class="hidden" />
+        <div class="grid-2">
+          <div class="field">
+            <label>课室</label>
+            <select id="editSchClassroom" required></select>
+          </div>
+          <div class="field">
+            <label>课程</label>
+            <select id="editSchCourse" required></select>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="field">
+            <label>日期</label>
+            <input id="editSchDate" type="date" required />
+          </div>
+          <div class="field">
+            <label>开始时间</label>
+            <input id="editSchStart" type="time" required />
+          </div>
+          <div class="field">
+            <label>结束时间</label>
+            <input id="editSchEnd" type="time" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>教师</label>
+          <input id="editSchTeacher" placeholder="teacher" required />
+        </div>
+
+        <div class="field">
+          <label>备注（可选）</label>
+          <input id="editSchRemark" placeholder="如：期末复习 / 实验课" />
+        </div>
+
+        <div class="row">
+          <button id="btnSaveScheduleEdit" class="btn primary" type="button">保存修改</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

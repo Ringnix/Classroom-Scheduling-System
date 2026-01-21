@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcl.mapper.CourseMapper">
+    <resultMap id="BaseMap" type="com.zcl.entity.Course">
+        <id property="id" column="id" />
+        <result property="courseName" column="course_name" />
+        <result property="teacher" column="teacher" />
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseMap">SELECT * FROM course</select>
+    <select id="findById" resultMap="BaseMap">SELECT * FROM course WHERE id = #{id}</select>
+    <select id="findByTeacher" resultMap="BaseMap">SELECT * FROM course WHERE teacher = #{teacher}</select>
+
+    <insert id="insert" parameterType="com.zcl.entity.Course">
+        INSERT INTO course(id, course_name, teacher) VALUES(#{id}, #{courseName}, #{teacher})
+    </insert>
+
+    <update id="update">
+        UPDATE course SET course_name=#{courseName}, teacher=#{teacher} WHERE id=#{id}
+    </update>
+
+    <delete id="delete">DELETE FROM course WHERE id=#{id}</delete>
+</mapper>

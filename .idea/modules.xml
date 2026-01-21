@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Classroom-Scheduling-System.iml" filepath="$PROJECT_DIR$/Classroom-Scheduling-System.iml" />
+      <module fileurl="file://$PROJECT_DIR$/classroom-frontend/classroom-frontend.iml" filepath="$PROJECT_DIR$/classroom-frontend/classroom-frontend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/classroom-management-frontend/classroom-management-frontend.iml" filepath="$PROJECT_DIR$/classroom-management-frontend/classroom-management-frontend.iml" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zcl.mapper.ClassroomMapper">
+    <resultMap id="BaseMap" type="com.zcl.entity.Classroom">
+        <id property="id" column="id" />
+        <result property="roomName" column="room_name" />
+        <result property="capacity" column="capacity" />
+        <result property="equipment" column="equipment" />
+        <result property="status" column="status" />
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseMap">SELECT * FROM classroom</select>
+    <select id="findById" resultMap="BaseMap">SELECT * FROM classroom WHERE id = #{id}</select>
+
+    <insert id="insert" parameterType="com.zcl.entity.Classroom">
+        INSERT INTO classroom(id, room_name, capacity, equipment, status)
+        VALUES(#{id}, #{roomName}, #{capacity}, #{equipment}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE classroom SET room_name=#{roomName}, capacity=#{capacity}, equipment=#{equipment}, status=#{status} WHERE id=#{id}
+    </update>
+
+    <delete id="delete">DELETE FROM classroom WHERE id=#{id}</delete>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zcl.mapper.ScheduleMapper">
+    <resultMap id="BaseMap" type="com.zcl.entity.Schedule">
+        <id property="id" column="id" />
+        <result property="classroomId" column="classroom_id" />
+        <result property="courseId" column="course_id" />
+        <result property="weekDay" column="week_day" />
+        <result property="startTime" column="start_time" />
+        <result property="endTime" column="end_time" />
+        <result property="date" column="date" />
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseMap">SELECT * FROM schedule</select>
+    <select id="findById" resultMap="BaseMap">SELECT * FROM schedule WHERE id = #{id}</select>
+    <select id="findByClassroomAndWeekday" resultMap="BaseMap">
+        SELECT * FROM schedule WHERE classroom_id=#{classroomId} AND week_day=#{weekDay}
+    </select>
+    <select id="findByClassroomId" resultMap="BaseMap">
+        SELECT * FROM schedule WHERE classroom_id = #{classroomId}
+    </select>
+    <select id="findByCourseId" resultMap="BaseMap">
+        SELECT * FROM schedule WHERE course_id = #{courseId}
+    </select>
+    <select id="findByTeacher" resultMap="BaseMap">
+        SELECT s.*
+        FROM schedule s
+        JOIN course c ON s.course_id = c.id
+        WHERE c.teacher = #{teacher}
+    </select>
+
+    <select id="findByClassroomIdAndDate" resultMap="BaseMap">
+        SELECT * FROM schedule
+        WHERE classroom_id = #{classroomId} AND date = #{date}
+    </select>
+
+    <select id="findCurrentSchedules" resultMap="BaseMap">
+        SELECT * FROM schedule
+        WHERE date = #{currentDate}
+        AND start_time &lt;= TIME(#{currentTime})
+        AND end_time &gt;= TIME(#{currentTime})
+    </select>
+
+    <insert id="insert" parameterType="com.zcl.entity.Schedule">
+        INSERT INTO schedule(id, classroom_id, course_id, week_day, start_time, end_time, date)
+        VALUES(#{id}, #{classroomId}, #{courseId}, #{weekDay}, #{startTime}, #{endTime}, #{date})
+    </insert>
+
+    <update id="update" parameterType="com.zcl.entity.Schedule">
+        UPDATE schedule SET classroom_id=#{classroomId}, course_id=#{courseId}, week_day=#{weekDay}, start_time=#{startTime}, end_time=#{endTime}, date=#{date} WHERE id=#{id}
+    </update>
+
+    <delete id="delete">DELETE FROM schedule WHERE id=#{id}</delete>
+</mapper>
